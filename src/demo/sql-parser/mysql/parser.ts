@@ -44,6 +44,7 @@ const statement = () => {
     createIndexStatement,
     createFunctionStatement,
     updateStatement,
+    alterStatement,
   ])(ast => {
     return ast[0];
   });
@@ -593,8 +594,22 @@ const field = () => {
 };
 
 // ----------------------------------- create index expression -----------------------------------
+/*
+ * createIndex
+ * : CREATE
+ *   intimeAction=(ONLINE | OFFLINE)?
+ *   indexCategory=(UNIQUE | FULLTEXT | SPATIAL)? INDEX
+ *   uid indexType?
+ *   ON tableName indexColumnNames
+ *   indexOption*
+ *   (
+ *     ALGORITHM EQUAL_SYMBOL? algType=(DEFAULT | INPLACE | COPY)
+ *     | LOCK EQUAL_SYMBOL? lockType=(DEFAULT | NONE | SHARED | EXCLUSIVE)
+ *   )*
+ * ;
+*/
 const createIndexStatement = () => {
-  return chain('create', 'index', indexItem, onStatement, whereStatement)();
+  return chain('create', optional(['UNIQUE', 'FULLTEXT', 'SPATIAL']), 'index', indexItem, onStatement, optional(whereStatement))();
 };
 
 const indexItem = () => {
@@ -602,7 +617,7 @@ const indexItem = () => {
 };
 
 const onStatement = () => {
-  return chain('ON', stringSym, '(', fieldForIndexList, ')')();
+  return chain('ON', tableName, '(', fieldForIndexList, ')')();
 };
 
 const fieldForIndex = () => {
@@ -621,4 +636,10 @@ const createFunctionStatement = () => {
 // ----------------------------------- update statement -----------------------------------
 const updateStatement = () => {
   return chain('UPDATE', tableSourceItem, 'SET', setValueList, optional(whereStatement))();
+};
+
+// ----------------------------------- alert statement -----------------------------------
+// TODO: alterStatement 相对来说有点复杂
+const alterStatement = () => {
+  return chain('ALTER', 'TABLE', tableSourceItem)();
 };
